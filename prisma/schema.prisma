@@ -1,0 +1,44 @@
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL") // Certifique-se de que esta variável no .env está correta
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Usuario {
+  id               String   @id @default(auto()) @map("_id") @db.ObjectId
+  nome             String
+  email            String   @unique
+  telefone         String   @unique
+  password         String
+  areasDeRisco     AriaDeRisco[]
+  analises         AriaDeRiscoAnalise[]
+}
+
+model AriaDeRisco {
+  id                String   @id @default(auto()) @map("_id") @db.ObjectId
+  imagem            String?
+  chuva             String
+  temperatura       String
+  tempo             String
+  enderecoFormatado String
+  latitude          Float
+  longitude         Float
+  usuarioId         String   @db.ObjectId
+  usuario           Usuario  @relation(fields: [usuarioId], references: [id])
+  analises          AriaDeRiscoAnalise[]
+}
+
+model AriaDeRiscoAnalise {
+  id                String   @id @default(auto()) @map("_id") @db.ObjectId
+  usuarioId         String   @db.ObjectId
+  ariaDeRiscoId     String   @db.ObjectId
+  dataAnalise       DateTime @default(now())
+
+  usuario           Usuario  @relation(fields: [usuarioId], references: [id])
+  ariaDeRisco       AriaDeRisco @relation(fields: [ariaDeRiscoId], references: [id])
+
+  @@unique([usuarioId, ariaDeRiscoId]) // Garante que um usuário só pode analisar uma área uma vez
+}
